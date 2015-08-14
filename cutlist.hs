@@ -67,6 +67,17 @@ popss m = unfoldr pop m
 
 pops m = map (foldr (:) []) $ popss m
 
+isPrefix :: (Eq a) => Seq a -> Seq a -> Bool
+isPrefix x y = (length x <= length y) && (all (uncurry (==)) $ S.zip x y)
+
+prunePrefix :: (Ord a) => Seq a -> Perms a -> Perms a
+prunePrefix x m = M.delete x $ removeLonger x m'
+  where (_, m') = popk m x -- expand m to contain all the x prefixes
+        removeLonger x m = case M.lookupGT x m of
+           Just (k, v) -> if isPrefix x k then removeLonger x $ M.delete k m else m
+           Nothing -> m
+
+        
 test x | odd x = 4
        | otherwise = 5
        
