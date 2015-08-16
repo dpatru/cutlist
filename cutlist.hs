@@ -3,7 +3,7 @@ import Data.Map.Strict (Map)
 import qualified Data.Map as M ((!),delete,elems,empty,insertWith,lookup,lookupGT,member,minView)
 -- import qualified Data.List as L 
 import Data.Sequence ((><), (<|), (|>), Seq)
-import qualified Data.Sequence as S (index,drop,splitAt,singleton,empty,fromList,drop,inits,take,zip)
+import qualified Data.Sequence as S (drop,drop,empty,fromList,index,inits,singleton,splitAt,take,zip)
 import Data.List (unfoldr)
 import Control.Exception (assert)
 
