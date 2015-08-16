@@ -1,14 +1,12 @@
 {-# LANGUAGE ViewPatterns #-}
 import System.Environment (getArgs)
 import Data.Map.Strict (Map)
-import qualified Data.Map as M
-import qualified Data.List as L
+import qualified Data.Map as M (insertWith,empty,member,delete,lookup,(!),minView,lookupGT,elems)
+-- import qualified Data.List as L 
 import Data.Sequence (Seq, (><), (<|), (|>), ViewL( (:<) ))
-import qualified Data.Sequence as S
+import qualified Data.Sequence as S (index,drop,splitAt,singleton,empty,fromList,drop,inits,take,zip)
 import Data.List (unfoldr)
 import Control.Exception (assert)
--- instance (Show k, Show v) => Show (Map k v)  where
---   show m = show $ M.toList m
 
 -- Perm == a partial permutation
 type Perm a = (Seq a, Seq a)  -- (permutation so far, rest of characters)
@@ -49,7 +47,7 @@ popk m x = if M.member x m'
            else (Nothing, m')
   where m' = foldl addPerms m (S.inits $ S.take (length x - 1) x)
         addPerms m x = case M.lookup x m of
-                       Just ps -> foldl (\m p -> m +++ (uncurry perm1 $ p)) m ps
+                       Just ps -> foldl (\m p -> m +++ (uncurry perm1 $ p)) (M.delete x m) ps
                        Nothing -> m
         ps = m' M.! x
 
@@ -70,6 +68,8 @@ pops m = map (foldr (:) []) $ popss m
 isPrefix :: (Eq a) => Seq a -> Seq a -> Bool
 isPrefix x y = (length x <= length y) && (all (uncurry (==)) $ S.zip x y)
 
+-- Remove all the items beginning with x. Expand permutations to
+-- ensure that all permutations are available.
 prunePrefix :: (Ord a) => Seq a -> Perms a -> Perms a
 prunePrefix x m = M.delete x $ removeLonger x m'
   where (_, m') = popk m x -- expand m to contain all the x prefixes
@@ -77,6 +77,17 @@ prunePrefix x m = M.delete x $ removeLonger x m'
            Just (k, v) -> if isPrefix x k then removeLonger x $ M.delete k m else m
            Nothing -> m
 
+toList :: (Foldable m) => m a -> [a]
+toList = foldr (:) []
+
+lists :: Perms a -> [ ([a],[a])] 
+lists = map (\(x,y)->(toList x, toList y)) . mconcat . map toList . M.elems
+
+-- lists :: (Perms a) -> [([a],[a])]
+-- lists ps = mconcat toLists $ M.elems ps
+--   where toLists :: Seq (Seq a, Seq a) -> [([a],[a])]
+--         toLists s = fmap (\(x,y) -> (toList x, toList y)) s
+--         toList x = foldr (:) [] x
         
 test x | odd x = 4
        | otherwise = 5
